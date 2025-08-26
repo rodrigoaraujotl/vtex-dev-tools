@@ -1,0 +1,62 @@
+{
+  "name": "@websense-dev-tools/vtex-dev-tools",
+  "version": "1.0.0",
+  "description": "Ferramentas de desenvolvimento para automatizar fluxos VTEX",
+  "main": "lib/index.js",
+  "bin": {
+    "vtex-dev": "./bin/vtex-dev.js"
+  },
+  "scripts": {
+    "test": "jest --passWithNoTests",
+    "lint": "eslint lib/**/*.js bin/**/*.js",
+    "format": "prettier --write lib/**/*.js bin/**/*.js",
+    "prepublishOnly": "npm test"
+  },
+  "keywords": [
+    "vtex",
+    "development",
+    "docker",
+    "ci-cd",
+    "automation",
+    "cli"
+  ],
+  "author": "Rodrigo Araujo <rodrigo@websense.consulting>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.16.0"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^11.1.0",
+    "dotenv": "^16.3.1",
+    "execa": "^8.0.1",
+    "fs-extra": "^11.1.1",
+    "inquirer": "^9.2.12",
+    "ora": "^7.0.1",
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/inquirer": "^9.0.7",
+    "@types/jest": "^29.5.5",
+    "@types/node": "^20.8.0",
+    "eslint": "^8.51.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "templates",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rodrigoaraujotl/vtex-dev-tools.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rodrigoaraujotl/vtex-dev-tools/issues"
+  },
+  "homepage": "https://github.com/rodrigoaraujotl/vtex-dev-tools#readme"
+}

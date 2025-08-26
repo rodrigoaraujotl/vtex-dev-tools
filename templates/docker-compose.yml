@@ -1,0 +1,99 @@
+# Docker Compose para desenvolvimento VTEX
+# Gerado pelo vtex-dev-tools
+
+version: '3.8'
+
+services:
+  vtex-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ${PROJECT_NAME:-vtex-app}-dev
+    volumes:
+      # Montar código fonte
+      - .:/app
+      # Cache do node_modules para melhor performance
+      - node_modules:/app/node_modules
+      # Cache do yarn
+      - yarn_cache:/home/vtexdev/.cache/yarn
+      # Configurações do VTEX CLI
+      - vtex_config:/home/vtexdev/.vtex
+    ports:
+      - "${DEV_PORT:-3000}:3000"
+      - "${WEBPACK_PORT:-3001}:3001"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - VTEX_ACCOUNT=${VTEX_ACCOUNT}
+      - VTEX_WORKSPACE=${VTEX_WORKSPACE:-master}
+      - VTEX_APP_ID=${VTEX_APP_ID}
+      - DOCKER_BUILDKIT=1
+      - COMPOSE_DOCKER_CLI_BUILD=1
+    env_file:
+      - .env.local
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    networks:
+      - vtex-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "--version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Serviço opcional para testes
+  vtex-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ${PROJECT_NAME:-vtex-app}-test
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=test
+      - CI=true
+    working_dir: /app
+    networks:
+      - vtex-network
+    profiles:
+      - testing
+    command: ["yarn", "test"]
+
+  # Serviço opcional para build de produção
+  vtex-build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ${PROJECT_NAME:-vtex-app}-build
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+      - build_output:/app/build
+    environment:
+      - NODE_ENV=production
+      - VTEX_ACCOUNT=${VTEX_ACCOUNT}
+      - VTEX_WORKSPACE=${VTEX_WORKSPACE:-master}
+    working_dir: /app
+    networks:
+      - vtex-network
+    profiles:
+      - build
+    command: ["yarn", "build"]
+
+volumes:
+  node_modules:
+    driver: local
+  yarn_cache:
+    driver: local
+  vtex_config:
+    driver: local
+  build_output:
+    driver: local
+
+networks:
+  vtex-network:
+    driver: bridge
+    name: vtex-dev-network

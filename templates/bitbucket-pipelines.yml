@@ -1,0 +1,183 @@
+# Bitbucket Pipelines para projetos VTEX
+# Gerado pelo vtex-dev-tools
+
+image: node:20
+
+definitions:
+  caches:
+    nodemodules: node_modules
+    yarn: ~/.cache/yarn
+  
+  services:
+    docker:
+      memory: 2048
+  
+  steps:
+    - step: &install-dependencies
+        name: Instalar Dependências
+        caches:
+          - nodemodules
+          - yarn
+        script:
+          - yarn install --frozen-lockfile
+        artifacts:
+          - node_modules/**
+    
+    - step: &lint-and-test
+        name: Lint e Testes
+        caches:
+          - nodemodules
+        script:
+          - yarn lint
+          - yarn test --coverage
+        artifacts:
+          - coverage/**
+    
+    - step: &build
+        name: Build
+        caches:
+          - nodemodules
+        script:
+          - yarn build
+        artifacts:
+          - build/**
+          - dist/**
+    
+    - step: &security-scan
+        name: Security Scan
+        script:
+          - yarn audit --level moderate
+          - npx snyk test || true
+    
+    - step: &deploy-staging
+        name: Deploy Staging
+        deployment: staging
+        caches:
+          - nodemodules
+        script:
+          - echo "Deploying to staging workspace..."
+          - yarn global add vtex
+          - vtex login $VTEX_ACCOUNT --token $VTEX_TOKEN
+          - vtex use $VTEX_STAGING_WORKSPACE
+          - vtex publish --yes
+          - vtex deploy --yes
+        after-script:
+          - vtex logout
+    
+    - step: &deploy-production
+        name: Deploy Production
+        deployment: production
+        trigger: manual
+        caches:
+          - nodemodules
+        script:
+          - echo "Deploying to production workspace..."
+          - yarn global add vtex
+          - vtex login $VTEX_ACCOUNT --token $VTEX_TOKEN
+          - vtex use $VTEX_PRODUCTION_WORKSPACE
+          - vtex publish --yes
+          - vtex deploy --yes
+        after-script:
+          - vtex logout
+    
+    - step: &docker-build
+        name: Docker Build
+        services:
+          - docker
+        script:
+          - docker build -t $BITBUCKET_REPO_SLUG:$BITBUCKET_BUILD_NUMBER .
+          - docker tag $BITBUCKET_REPO_SLUG:$BITBUCKET_BUILD_NUMBER $BITBUCKET_REPO_SLUG:latest
+    
+    - step: &performance-test
+        name: Performance Tests
+        script:
+          - yarn global add lighthouse-ci
+          - lhci autorun || true
+
+pipelines:
+  default:
+    - step: *install-dependencies
+    - parallel:
+        - step: *lint-and-test
+        - step: *security-scan
+    - step: *build
+  
+  branches:
+    develop:
+      - step: *install-dependencies
+      - parallel:
+          - step: *lint-and-test
+          - step: *security-scan
+      - step: *build
+      - step: *deploy-staging
+    
+    staging:
+      - step: *install-dependencies
+      - parallel:
+          - step: *lint-and-test
+          - step: *security-scan
+      - step: *build
+      - step: *deploy-staging
+      - step: *performance-test
+    
+    master:
+      - step: *install-dependencies
+      - parallel:
+          - step: *lint-and-test
+          - step: *security-scan
+      - step: *build
+      - step: *deploy-production
+    
+    main:
+      - step: *install-dependencies
+      - parallel:
+          - step: *lint-and-test
+          - step: *security-scan
+      - step: *build
+      - step: *deploy-production
+  
+  pull-requests:
+    '**':
+      - step: *install-dependencies
+      - parallel:
+          - step: *lint-and-test
+          - step: *security-scan
+      - step: *build
+  
+  tags:
+    'v*':
+      - step: *install-dependencies
+      - parallel:
+          - step: *lint-and-test
+          - step: *security-scan
+      - step: *build
+      - step: *deploy-production
+  
+  custom:
+    docker-build:
+      - step: *install-dependencies
+      - step: *build
+      - step: *docker-build
+    
+    full-test:
+      - step: *install-dependencies
+      - parallel:
+          - step: *lint-and-test
+          - step: *security-scan
+      - step: *build
+      - step: *performance-test
+    
+    deploy-staging-manual:
+      - step: *install-dependencies
+      - step: *build
+      - step: *deploy-staging
+    
+    deploy-production-manual:
+      - step: *install-dependencies
+      - step: *build
+      - step: *deploy-production
+
+# Configurações globais
+options:
+  max-time: 30
+  size: 2x
