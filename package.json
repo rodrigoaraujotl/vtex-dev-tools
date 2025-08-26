@@ -1,6 +1,6 @@
 {
   "name": "@websense-dev-tools/vtex-dev-tools",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Ferramentas de desenvolvimento para automatizar fluxos VTEX",
   "main": "lib/index.js",
   "bin": {
