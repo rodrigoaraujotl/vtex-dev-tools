@@ -49,13 +49,13 @@ O **VTEX Dev Tools** é um pacote npm que automatiza e simplifica o fluxo de des
 ### Instalação Global
 
 ```bash
-npm install -g @jnj/vtex-dev-tools
+npm install -g @websense-dev-tools/vtex-dev-tools
 ```
 
 Ou com Yarn:
 
 ```bash
-yarn global add @jnj/vtex-dev-tools
+yarn global add @websense-dev-tools/vtex-dev-tools
 ```
 
 ### Instalação Local (Desenvolvimento)
@@ -546,7 +546,7 @@ A: Sim, execute `vtex-dev init` em um projeto existente. Os arquivos serão cria
 A: Sim, desde que tenha Docker Desktop instalado e WSL2 configurado.
 
 **Q: Como atualizar o vtex-dev-tools?**
-A: Execute `npm update -g @jnj/vtex-dev-tools` ou `yarn global upgrade @jnj/vtex-dev-tools`.
+A: Execute `npm update -g @websense-dev-tools/vtex-dev-tools` ou `yarn global upgrade @websense-dev-tools/vtex-dev-tools`.
 
 **Q: Posso customizar os templates?**
 A: Sim, após a inicialização você pode modificar os arquivos gerados conforme necessário.
